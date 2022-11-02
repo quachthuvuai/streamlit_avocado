@@ -6,8 +6,6 @@ matplotlib
 plotly
 seaborn
 scikit-learn
-squarify
-datetime
 pickle
 json
 pmdarima
