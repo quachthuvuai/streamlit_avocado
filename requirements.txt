@@ -10,6 +10,8 @@ datetime
 feature_engine
 scikit-learn
 pmdarima
+wheel
+statsmodels
 pystan==2.19.1.1
 fbprophet
 
