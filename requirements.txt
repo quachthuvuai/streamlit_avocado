@@ -8,7 +8,7 @@ seaborn
 squarify
 datetime
 feature_engine
-scikit-learn==0.22.2.post1
+scikit-learn
 pmdarima
 pystan==2.19.1.1
 fbprophet==0.5
