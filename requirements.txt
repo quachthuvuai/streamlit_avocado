@@ -1,0 +1,17 @@
+streamlit
+streamlit_option_menu
+numpy
+pandas
+matplotlib
+plotly
+seaborn
+scikit-learn
+squarify
+datetime
+feature_engine
+math
+fbprophet
+pickle
+json
+pmdarima
+
