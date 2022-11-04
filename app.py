@@ -10,8 +10,8 @@ from sklearn.metrics import r2_score
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 from math import sqrt
 
-from fbprophet import Prophet 
-from fbprophet.plot import add_changepoints_to_plot
+from prophet import Prophet 
+from prophet.plot import add_changepoints_to_plot
 
 from pmdarima.arima import ARIMA
 from pmdarima import auto_arima
