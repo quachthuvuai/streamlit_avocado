@@ -10,8 +10,8 @@ from sklearn.metrics import r2_score
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 from math import sqrt
 
-from prophet import Prophet 
-from prophet.plot import add_changepoints_to_plot
+from fbprophet import Prophet 
+from fbprophet.plot import add_changepoints_to_plot
 
 from pmdarima.arima import ARIMA
 from pmdarima import auto_arima
@@ -194,18 +194,18 @@ pf_model_conventional=pf_model_con.fit(df_pf_con)
 
 if (selected == 'Introduction'):
 
-    st.write("""
+    st.markdown("""
     # :books: Business Objective
-    Hass, a company based in Mexico, specializes in producing a variety of avocados for selling in U.S.A. 
+    **Hass**, a company based in Mexico, specializes in producing a variety of avocados for selling in U.S.A. 
     They have been very successful over recent years and want to expand their business. 
     Thus they want build a reasonable model to predict the average price of avocado “Hass” in the U.S.A to consider the expansion of existing avocado farms in other regions.
 
-    There are two types of avocados (conventional and organic) in the dataset and several different regions. 
+    There are two types of avocados (**conventional** and **organic**) in the dataset and several different regions. 
     This allows us to do analysis for either conventional or organic avocados in different regions and/or the entire United States.
 
-    There are 2 different approaches to solve this business objective:
-    First approach: create a regression model using supervised machine learning algorithms such as Linear Regression, Random Forest, XGB Regressor so on to predict average price of avocado in the USA.
-    Second approach: build a predictive model based on supervised time-series machine learning algorithms like Arima, Prophet, HoltWinters to predict average price of a particular avocado (organic or conventional) over time for a specific region in the USA.
+    **There are 2 different approaches to solve this business objective:**
+    - **First approach:** create a **regression model** using supervised machine learning algorithms such as **Linear Regression, Random Forest, XGB Regressor** so on to predict average price of avocado in the USA.
+    - **Second approach:** build a **predictive model** based on supervised time-series machine learning algorithms like **Arima, Prophet, HoltWinters** to predict average price of a particular avocado (organic or conventional) over time for a specific region in the USA.
     """)
 
     from PIL import Image 
@@ -214,10 +214,10 @@ if (selected == 'Introduction'):
 
     st.write("""
     # :chart_with_upwards_trend: Avocado price Forecasting
-    This app used avocado.csv dataset as train and test data. 
+    This app used **avocado.csv** dataset as train and test data. 
     """)
     st.markdown('''
-    This is a dashboard showing the *average prices* of different types of :avocado:  
+    This is a dashboard showing the **average prices** of different types of :avocado:  
     Data source: [Kaggle](https://www.kaggle.com/datasets/timmate/avocado-prices-2020)
     ''')
 
@@ -264,7 +264,7 @@ if (selected == 'Introduction'):
             price_fig = px.line(filtered_avocado,
                             x='Date', y='AveragePrice',
                             color='type',
-                            title=f'Avocado Prices in {data.type[0]}')
+                            title=f'Avocado Price in {avocado_type}')
             st.plotly_chart(price_fig)
             
             # Show sale volume
@@ -272,7 +272,7 @@ if (selected == 'Introduction'):
                 volume_fig = px.line(filtered_avocado,
                                 x='Date', y='Total Volume',
                                 color='type',
-                                title=f'Avocado Sale Volume in {data.type[0]}')           
+                                title=f'Avocado Sale Volume in {avocado_type}')           
                 st.plotly_chart(volume_fig)
 
 
@@ -286,25 +286,25 @@ elif (selected == 'Data Exploration'):
     st.subheader(':chart_with_downwards_trend: Seasonality analysis')
     Byweekly = st.checkbox('Weekly')
     if Byweekly:
-        st.success('🌎 Seasonality by weekly')
+        st.success('🌎 **Seasonality by weekly**')
         from PIL import Image 
         img_weekly = Image.open("images/weekly.jpg")
         st.image(img_weekly,width=700,caption='Streamlit Images')
     Bymonthly = st.checkbox('Monthly')
     if Bymonthly:
-        st.success('🌎 Seasonality by monthly')
+        st.success('🌎 **Seasonality by monthly**')
         from PIL import Image 
         img_monthly = Image.open("images/monthly.jpg")
         st.image(img_monthly,width=700,caption='Streamlit Images')
     BySeason = st.checkbox('BySeason')
     if BySeason:
-        st.success('🌎 Seasonality by monthly')
+        st.success('🌎 **Seasonality by season**')
         from PIL import Image 
         img_seasonly = Image.open("images/seasonly.jpg")
         st.image(img_seasonly,width=700,caption='Streamlit Images')
     Byyearly = st.checkbox('Yearly')
     if Byyearly:
-        st.success('🌎 Seasonality by yearly')
+        st.success('🌎 **Seasonality by yearly**')
         from PIL import Image 
         img_yearly = Image.open("images/yearly.jpg")
         st.image(img_yearly,width=700,caption='Streamlit Images')
@@ -333,11 +333,13 @@ elif (selected == 'Data Exploration'):
 
         elif columns==['organic', 'conventional']:
             
-            st.write("classify by region, filter type==['conventinal','organic'] ")
+            st.write("classify by region, filter type==['organic'] ")
             fig3=plt.figure(figsize=(25,5))
             sns.boxplot(data=data[data['type']=='organic'], x='region', y='AveragePrice')
             plt.xticks(rotation=90)
             st.pyplot(fig3)
+
+            st.write("classify by region, filter type==['conventinal'] ")
             fig4=plt.figure(figsize=(25,5))
             sns.boxplot(data=data[data['type']=='conventional'], x='region', y='AveragePrice')
             plt.xticks(rotation=90)
@@ -347,7 +349,7 @@ elif (selected == 'Data Exploration'):
 
 
     st.markdown('''
-        grouped region from multiple states: show high sale volume
+        Grouped region from multiple states: show high sale volume
 
         - southest region
         - northest region
@@ -358,7 +360,7 @@ elif (selected == 'Data Exploration'):
         LosAngles city is belong to California state. California is the Largest avocado Consumer in the US
             
         ''')
-    text=" In this exercise we will focus on [California] region"
+    text=" In this exercise we will focus on **California** region"
     new_title = ':point_right:' + '<p style="font-family:sans-serif; color:Blue; font-size: 30px;">' + text + '</p>'
     st.markdown(new_title, unsafe_allow_html=True)
 
@@ -374,7 +376,7 @@ elif (selected == 'Regression model'):
     st.header(':sparkles: Regression Model')
     st.markdown(':heart: Multiple regression models were run by **Lazypredict** to find out which regressor is the best fit for this study')
 
-    st.success('🌎 RandomForest is one of the the best regressor to be focus more this the following prediction')
+    st.success('🌎 **RandomForest** is one of the the best regressor to be focus more this the following prediction')
     from PIL import Image 
     img3 = Image.open("images/lazypredict.png")
     st.image(img3,width=900,caption='Streamlit Images')
@@ -436,7 +438,7 @@ elif (selected == 'Regression model'):
 
 
 
-            st.info(':bookmark: Let predict new data and compare with test dataset. This plot shows the different between prediction and actual data')
+            st.info(':bookmark: Let predict **new data** and compare with test dataset. This plot shows the different between **prediction** and **actual data**')
             # fig5=plt.figure(figsize=(25,15))
             fig5, ax = plt.subplots()
             
@@ -467,34 +469,34 @@ elif (selected == 'Regression model'):
 elif (selected == 'Arima model'):    
     st.header(':wind_chime: Arima Model')
 
-    st.success('🌎 seasonal decomposition for organic type')
+    st.success('🌎 **seasonal decomposition for organic type**')
     from PIL import Image 
     arima_img1 = Image.open("images/arima_seasonal_decompose_organic.jpg")
     st.image(arima_img1,width=700,caption='Streamlit Images')
 
-    st.success('🌎 diagnostics plot for organic type')
+    st.success('🌎 **diagnostics plot for organic type**')
     from PIL import Image 
     arima_img2 = Image.open("images/arima_plot_diagnostics_organic.jpg")
     st.image(arima_img2,width=700,caption='Streamlit Images')
 
 
-    st.success('🌎 ARIMA model prediction for organic type')
+    st.success('🌎 **ARIMA model prediction for organic type**')
     from PIL import Image 
     arima_img3 = Image.open("images/arima_prediction_organic.jpg")
     st.image(arima_img3,width=700,caption='Streamlit Images')
 
-    st.success('🌎 seasonal decomposition for conventional type')
+    st.success('🌎 **seasonal decomposition for conventional type**')
     from PIL import Image 
     arima_img4 = Image.open("images/arima_seasonal_decompose_conventional.jpg")
     st.image(arima_img4,width=700,caption='Streamlit Images')
 
-    st.success('🌎 diagnostics plot for conventional type')
+    st.success('🌎 **diagnostics plot for conventional type**')
     from PIL import Image 
     arima_img5 = Image.open("images/arima_plot_diagnostics_conventional.jpg")
     st.image(arima_img5,width=700,caption='Streamlit Images')
 
 
-    st.success('🌎 ARIMA model prediction for conventional type')
+    st.success('🌎 **ARIMA model prediction for conventional type**')
     from PIL import Image 
     arima_img6 = Image.open("images/arima_prediction_conventional.jpg")
     st.image(arima_img6,width=700,caption='Streamlit Images')
@@ -714,10 +716,10 @@ elif (selected == 'Prophet model'):
 
 elif (selected == 'Model Results'): 
     st.snow()
-    st.header('Evaluation the Model results and select the suitable model for this project') 
+    st.header(':dart: Evaluation the Model results and select the suitable model for this project') 
     st.success('There are 2 different approaches to solve this business objective')
 
-    st.subheader('1. Regression model')
+    st.subheader(':anchor: 1. Regression model')
 
     
     st.info('**First approach:** create a regression model using supervised machine learning algorithms such as Linear Regression, Random Forest, XGB Regressor so on to predict average price of avocado in the USA.')
@@ -736,16 +738,16 @@ elif (selected == 'Model Results'):
 
     new_title = '<p style="font-family:sans-serif; color:Blue; font-size: 25px;">The table below shows the result of Regression models:</p>'
     st.markdown(new_title, unsafe_allow_html=True)
-    st.write('Yellow cells are highlighted for the errors <0.12 or R2>0.9')
+    st.write('**Yellow cells are highlighted for the errors <0.12 or R2>0.9**')
 
     result_table = pd.DataFrame(lst_reg, columns =['Model name', 'R2 score', 'Mean absolute error'])
 
     # Using Style for the Dataframe
     st.dataframe(result_table.style.applymap(color_df, subset=[ 'R2 score', 'Mean absolute error']))
 
-    st.subheader(':memo: Random forest model is the best suited model for our purpose of predicting average avocado prices')   
+    st.subheader(':memo: Random forest model is the best suited model for our purpose of predicting average avocado price')   
 
-    st.subheader('2. Time series prediction model: ARIMA and FBPROPHET')
+    st.subheader(':anchor: 2. Time series prediction model: ARIMA and FBPROPHET')
     st.success('ARIMA model is a procedure for forecasting time series data based on an additive model where non-linear trends are fit with yearly, weekly, and daily seasonality, plus holiday effects.')
     st.info('Second approach: build a predictive model based on supervised time-series machine learning algorithms like Arima, Prophet, HoltWinters to predict average price of a particular avocado (organic or conventional) over time for a specific region in the USA.')
 
@@ -770,7 +772,7 @@ elif (selected == 'Model Results'):
 
     arima_title = '<p style="font-family:sans-serif; color:Blue; font-size: 25px;">The table below shows the result of Time series prediction model:</p>'
     st.markdown(arima_title, unsafe_allow_html=True)
-    st.write('Yellow cells are highlighted for the errors <0.12')
+    st.write('**Yellow cells are highlighted for the errors <0.12**')
 
     timeseries_table = pd.DataFrame(lst_ts, columns =['Model name', 'Mean absolute error', 'mean_absolute_percentage_error', 'mean_squared_error'])
 
@@ -831,5 +833,4 @@ elif (selected == 'Thank You'):
         width=None,
         key=None,
     )
-
     
