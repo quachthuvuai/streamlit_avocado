@@ -22,7 +22,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 from sklearn.ensemble import RandomForestRegressor
 
-
+import requests  # pip install requests
+from streamlit_lottie import st_lottie  # pip install streamlit-lottie
 
 from sklearn.preprocessing import LabelEncoder
 import pickle
@@ -32,7 +33,6 @@ import json
 
 # Page setting
 st.set_page_config(layout="wide")
-
 
 # sidebar for navigation
 with st.sidebar:
@@ -44,7 +44,7 @@ with st.sidebar:
                           'Regression model',
                            'Arima model',
                            'Prophet model',
-                           'Evaluation',
+                           'Model Results',
                            'Thank You'],
                           icons=['book', 'key', 'moon', 'calculator', 'pen', 'sun', 'person'],
                           default_index=0)
@@ -52,22 +52,50 @@ with st.sidebar:
     
 
 
-    # Sidebar setup
-    st.sidebar.title(':arrow_up: Upload data here:')
-    uploaded_file = st.sidebar.file_uploader('Upload avocado data', type=['csv'])
-    if uploaded_file is not None:
-        data = pd.read_csv(uploaded_file)
-        data.to_csv("avocado_new.csv", index = False)
+    # # Sidebar setup
+    # st.sidebar.title(':arrow_up: Upload data here:')
+    # uploaded_file = st.sidebar.file_uploader('Upload avocado data', type=['csv'])
+    # if uploaded_file is not None:
+    #     data = pd.read_csv(uploaded_file)
+    #     data.to_csv("avocado_new.csv", index = False)
 
-    # Information about us
+
+# Information about us
     st.sidebar.title(":two_men_holding_hands: About us")
-    st.sidebar.info(
+with st.sidebar.expander("Meet our team"):
+    st.info(
         """
         This web [app](....) is maintained by [Quách Thu Vũ & Thái Văn Đức]. 
         Học Viên lớp LDS0_K279 | THTH DHKHTN |
     """
     )
 
+with st.sidebar:
+    st.header(":mailbox: Send us your feedback!")
+
+
+    contact_form = """
+    <form action="https://formsubmit.co/quachthuvu.ai@gmail.com" method="POST">
+        <input type="hidden" name="_captcha" value="false">
+        <input type="text" name="name" placeholder="Your name" required>
+        <input type="email" name="email" placeholder="Your email" required>
+        <textarea name="message" placeholder="Your message here"></textarea>
+        <button type="submit">Send</button>
+    </form>
+    """
+
+    st.markdown(contact_form, unsafe_allow_html=True)
+
+    # Use Local CSS File
+    def local_css(file_name):
+        with open(file_name) as f:
+            st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
+
+    local_css("style/style.css")
+
+
+with st.sidebar:
     st.markdown('This dashboard is made by **Streamlit**')
     st.sidebar.image('https://streamlit.io/images/brand/streamlit-mark-color.png', width=50)
 
@@ -87,7 +115,7 @@ avocado_stats = data.groupby('type')['AveragePrice', 'Total Volume', 'Total Bags
 
 
 data['Date']=pd.to_datetime(data['Date'])
-data['week']=pd.DatetimeIndex(data['Date']).week
+data['week']=data.Date.dt.isocalendar().week # https://github.com/pandas-dev/pandas/issues/39142
 data['month']=pd.DatetimeIndex(data['Date']).month
 
 def convert_month(month):
@@ -101,6 +129,8 @@ def convert_month(month):
     return 3
 
 data['season']=data['month'].apply(lambda x: convert_month(x))
+
+#Regression RandomForest Model
 
 from sklearn import preprocessing
 le = preprocessing.LabelEncoder()
@@ -124,6 +154,9 @@ pipe_RF.fit(X_train, y_train)
 
 y_pred_RF=pipe_RF.predict(X_test)
 
+
+
+
 # Reads test data
 organic_data = pd.read_csv('organic_test.csv')
 organic_test=organic_data.set_index(pd.DatetimeIndex(organic_data['Date'])).drop('Date', axis=1)
@@ -136,6 +169,7 @@ conventional_test=conventional_data.set_index(pd.DatetimeIndex(conventional_data
 organic_model = pickle.load(open('arima_model_organic.pkl', 'rb'))
 conventional_model = pickle.load(open('arima_model_conventional.pkl', 'rb'))
 
+
 # Reads in saved prophet model
 df_pf_or = pd.read_csv('df_pf_or.csv', parse_dates=['ds'])
 df_pf_or=df_pf_or.drop('Unnamed: 0', axis=1)
@@ -146,7 +180,7 @@ pf_model_or = Prophet(yearly_seasonality=True, \
 
 pf_model_organic=pf_model_or.fit(df_pf_or)
 
-# Reads in saved prophet model
+# Reads in saved prophet files
 df_pf_con = pd.read_csv('df_pf_con.csv', parse_dates=['ds'])
 df_pf_con=df_pf_con.drop('Unnamed: 0', axis=1)
 df_pf_con.y = df_pf_con.y.astype(float)
@@ -338,22 +372,14 @@ elif (selected == 'Data Exploration'):
 
 elif (selected == 'Regression model'):
     st.header(':sparkles: Regression Model')
-    st.markdown(':heart: Multiple regression models were run by Lazypredict to foind out which regressor is the best for this study')
+    st.markdown(':heart: Multiple regression models were run by **Lazypredict** to find out which regressor is the best fit for this study')
 
     st.success('🌎 RandomForest is one of the the best regressor to be focus more this the following prediction')
     from PIL import Image 
-    img3 = Image.open("images/lazypredict.jpg")
-    st.image(img3,width=700,caption='Streamlit Images')
+    img3 = Image.open("images/lazypredict.png")
+    st.image(img3,width=900,caption='Streamlit Images')
 
-    # # load the model from disk
-    # with open('randomforest_model.sav', 'rb') as pkl:
-    #     rf_model = pickle.load(pkl)
 
-    # y_pred_rf = rf_model.predict(X_test)
-
-    # mae_rf = mean_absolute_error(y_test, y_pred_rf)
-
-    # st.write(mae_rf)
 
     r2_score_RF=r2_score(y_test, y_pred_RF)
     # st.write(r2_score_RF)
@@ -361,21 +387,80 @@ elif (selected == 'Regression model'):
     rae_RF=mean_absolute_error(y_test, y_pred_RF)
     # st.write(rae_RF)
 
-    lst=[['Random Forest', r2_score_RF, rae_RF]]
+    lst=[['Random Forest', r2_score_RF, rae_RF], ['Linear Regression', 0.5971864587118034, 0.19066532894162472], ['XGBoost', 0.756433017624207, 0.14966720933304528]]
 
-    new_title = '<p style="font-family:sans-serif; color:Blue; font-size: 25px;">The table below shows the result of RandomForest model:</p>'
+    new_title = '<p style="font-family:sans-serif; color:Blue; font-size: 25px;">The table below shows the result of RandomForest model used in this study:</p>'
     st.markdown(new_title, unsafe_allow_html=True)
 
     result_table = pd.DataFrame(lst, columns =['Model name', 'R2 score', 'Mean absolute error'])
 
     st.dataframe(result_table)
 
-    st.info(':bookmark: Different between prediction and actual data')
-    fig5=plt.figure(figsize=(25,15))
-    plt.scatter(x=y_test, y=y_pred_RF)
-    st.pyplot(fig5)
+    # setup data
+    st.title(':arrow_up: Upload data here to perfom price prediction:')
+    uploaded_file = st.file_uploader('Upload avocado data', type=['csv'])
 
-    
+    #input number of sample to predict
+    int_num = st.number_input('number of samples', min_value=1, max_value=100, value=5, step=1)
+
+    if st.button("Process"):
+
+        if uploaded_file is not None:
+            df_new = pd.read_csv(uploaded_file)
+            # df_new.to_csv("avocado_new.csv", index = False)   
+
+            # data preprocessing
+            # @st.cache
+            # def load_data(path):
+            #     df_new = pd.read_csv(path)
+            #     return df_new
+
+            # df_new = load_data('data_regression.csv')
+            df_new.drop(['Unnamed: 0'], axis=1, inplace=True)
+            
+            
+            X1=df_new.drop(['AveragePrice'], axis=1)
+            y1=df_new['AveragePrice']
+
+            
+            X_sample = X1.sample(int_num)
+            y_sample = y1[X_sample.index]
+
+
+            pipe_RF_sample=Pipeline([('scaler', StandardScaler()), 
+                            ('rf', RandomForestRegressor())])
+
+            pipe_RF_sample.fit(X_sample, y_sample)
+
+            y_sample_pred_RF=pipe_RF_sample.predict(X_sample)
+
+
+
+            st.info(':bookmark: Let predict new data and compare with test dataset. This plot shows the different between prediction and actual data')
+            # fig5=plt.figure(figsize=(25,15))
+            fig5, ax = plt.subplots()
+            
+            ax.scatter(x=y_test, y=y_pred_RF, c='blue', label=['Original test data'])
+            ax.scatter(x=y_sample, y=y_sample, s=120, c='red', label=['New prediction data'])
+            # Annotation
+            # ax.annotate(f'new prediction Avocado price at sampled data', (1.5, 2.0), xytext=(1.5, 2),
+            # textcoords='offset points', arrowprops=dict(facecolor='green', shrink=0.5), ha='center')
+            labels = ["%.2f" % i for i in y_sample]
+            for label, x, y in zip(labels, y_sample, y_sample_pred_RF):
+                ax.annotate(
+                    label,
+                    xy=(x, y), xytext=(-10, 15),
+                    textcoords='offset points', ha='right', va='bottom',
+                    bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.5),
+                    arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0')
+                )
+            plt.xlabel('Actual price of test data', fontsize=15)
+            plt.ylabel('Predict price of test data', fontsize=15)
+            plt.title('Actual vs Predict avocado price vs newly data', fontsize=20)
+            plt.legend()
+            st.pyplot(fig5)
+
+ 
 
 #=====================================================================================================================================================    
 
@@ -417,11 +502,11 @@ elif (selected == 'Arima model'):
     mae_or = 0.0810784207188943
     mape_or = 0.04596885301082209
     rmse_or = 0.09000986858549902
-
+    
     mae_con = 0.134824331311639
     mape_con = 0.10298540343308708
     rmse_con = 0.1744429644006418
-
+    
     lst=[['Arima_organic', mae_or, mape_or, rmse_or], ['Arima_conventional', mae_con, mape_con, rmse_con]]
 
     arima_title = '<p style="font-family:sans-serif; color:Blue; font-size: 25px;">The table below shows the result of ARIMA model:</p>'
@@ -627,13 +712,124 @@ elif (selected == 'Prophet model'):
     
 #=====================================================================================================================================================    
 
-elif (selected == 'Evaluation'): 
+elif (selected == 'Model Results'): 
     st.snow()
-    st.header('Evaluation Model') 
+    st.header('Evaluation the Model results and select the suitable model for this project') 
+    st.success('There are 2 different approaches to solve this business objective')
+
+    st.subheader('1. Regression model')
+
+    
+    st.info('**First approach:** create a regression model using supervised machine learning algorithms such as Linear Regression, Random Forest, XGB Regressor so on to predict average price of avocado in the USA.')
+    
+
+    # Function 
+    def color_df(val):
+        if (val < 0.12) | (val > 0.9):
+            color = 'yellow'
+        else :
+            color = 'white'
+        return f'background-color: {color}'
+
+
+    lst_reg=[['Random Forest', 0.9072, 0.0832], ['Linear Regression', 0.5971864587118034, 0.19066532894162472], ['XGBoost', 0.756433017624207, 0.14966720933304528]]
+
+    new_title = '<p style="font-family:sans-serif; color:Blue; font-size: 25px;">The table below shows the result of Regression models:</p>'
+    st.markdown(new_title, unsafe_allow_html=True)
+    st.write('Yellow cells are highlighted for the errors <0.12 or R2>0.9')
+
+    result_table = pd.DataFrame(lst_reg, columns =['Model name', 'R2 score', 'Mean absolute error'])
+
+    # Using Style for the Dataframe
+    st.dataframe(result_table.style.applymap(color_df, subset=[ 'R2 score', 'Mean absolute error']))
+
+    st.subheader(':memo: Random forest model is the best suited model for our purpose of predicting average avocado prices')   
+
+    st.subheader('2. Time series prediction model: ARIMA and FBPROPHET')
+    st.success('ARIMA model is a procedure for forecasting time series data based on an additive model where non-linear trends are fit with yearly, weekly, and daily seasonality, plus holiday effects.')
+    st.info('Second approach: build a predictive model based on supervised time-series machine learning algorithms like Arima, Prophet, HoltWinters to predict average price of a particular avocado (organic or conventional) over time for a specific region in the USA.')
+
+    mae_o_arima = 0.0810784207188943
+    mape_o_arima = 0.04596885301082209
+    rmse_o_arima = 0.09000986858549902
+    
+    mae_c_arima = 0.134824331311639
+    mape_c_arima = 0.10298540343308708
+    rmse_c_arima = 0.1744429644006418
+
+    mae_o_prophet = 0.20912640616673214
+    mape_o_prophet = 0.12323229223830527
+    rmse_o_prophet = 0.23976214502612603
+
+    mae_c_prophet = 0.23568233062260677
+    mape_c_prophet = 0.18630272896575167
+    rmse_c_prophet = 0.2967862427328833
+    
+    lst_ts=[['Arima_organic', mae_o_arima, mape_o_arima, rmse_o_arima], ['Arima_conventional', mae_c_arima, mape_c_arima, rmse_c_arima], 
+    ['Prophet_organic', mae_o_prophet, mape_o_prophet, rmse_o_prophet], ['Prophet_conventional', mae_c_prophet, mape_c_prophet, rmse_c_prophet]]
+
+    arima_title = '<p style="font-family:sans-serif; color:Blue; font-size: 25px;">The table below shows the result of Time series prediction model:</p>'
+    st.markdown(arima_title, unsafe_allow_html=True)
+    st.write('Yellow cells are highlighted for the errors <0.12')
+
+    timeseries_table = pd.DataFrame(lst_ts, columns =['Model name', 'Mean absolute error', 'mean_absolute_percentage_error', 'mean_squared_error'])
+
+    # Function 
+    def color_df(val):
+        if val < 0.12:
+            color = 'yellow'
+        else :
+            color = 'white'
+        return f'background-color: {color}'
+
+
+    # Using Style for the Dataframe
+    st.dataframe(timeseries_table.style.applymap(color_df, subset=[ 'Mean absolute error', 'mean_absolute_percentage_error', 'mean_squared_error']))
+
+    st.subheader(':memo: ARIMA model works best with time series that have strong seasonal effects and several seasons of historical data')  
+    
+
+
+      
+
+  
+
+
+
+
 
 #=====================================================================================================================================================    
 
 elif (selected == 'Thank You'): 
+    st.balloons()
     st.header('THANK YOU FOR YOUR LISTENING') 
 
-    st.balloons()
+
+    # def load_lottiefile(filepath: str):
+    #     with open(filepath, "r") as f:
+    #         return json.load(f)
+
+
+    def load_lottieurl(url: str):
+        r = requests.get(url)
+        if r.status_code != 200:
+            return None
+        return r.json()
+    
+
+    #lottie_coding = load_lottiefile("images/125768-mobile-app.json")  
+    lottie_hello = load_lottieurl("https://assets9.lottiefiles.com/packages/lf20_totrpclr.json")
+
+    st_lottie(
+        lottie_hello,
+        speed=1,
+        reverse=False,
+        loop=True,
+        quality="low", # medium ; high
+        # renderer="svg", # canvas
+        height=None,
+        width=None,
+        key=None,
+    )
+
+    
