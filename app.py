@@ -65,7 +65,7 @@ with st.sidebar:
 with st.sidebar.expander("Meet our team"):
     st.info(
         """
-        This web [app](....) is maintained by [Quách Thu Vũ & Thái Văn Đức]. 
+        This web [app](https://avocadostreamlitapp.herokuapp.com/) is maintained by [Quách Thu Vũ & Thái Văn Đức]. 
         Học Viên lớp LDS0_K279 | THTH DHKHTN |
     """
     )
