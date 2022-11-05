@@ -778,7 +778,7 @@ elif (selected == 'Model Results'):
     st.subheader(':memo: Random forest model is the best suited model for our purpose of predicting average avocado price')   
 
     st.subheader(':anchor: 2. Time series prediction model: ARIMA and FBPROPHET')
-    st.success('ARIMA model is a procedure for forecasting time series data based on an additive model where non-linear trends are fit with yearly, weekly, and daily seasonality, plus holiday effects.')
+    st.success('ARIMA model and PROPHET model are a procedure for forecasting time series data based on an additive model where non-linear trends are fit with yearly, weekly, and daily seasonality, plus holiday effects.')
     st.info('Second approach: build a predictive model based on supervised time-series machine learning algorithms like Arima, Prophet, HoltWinters to predict average price of a particular avocado (organic or conventional) over time for a specific region in the USA.')
 
     mae_o_arima = 0.0810784207188943
