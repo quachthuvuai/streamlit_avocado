@@ -804,7 +804,7 @@ elif (selected == 'Model Results'):
 
 elif (selected == 'Thank You'): 
     st.balloons()
-    st.header('THANK YOU FOR YOUR LISTENING') 
+    st.header('THANK YOU FOR VISITING OUR APP') 
 
 
     # def load_lottiefile(filepath: str):
