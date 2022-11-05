@@ -10,8 +10,8 @@ from sklearn.metrics import r2_score
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 from math import sqrt
 
-from prophet import Prophet 
-from prophet.plot import add_changepoints_to_plot
+from fbprophet import Prophet 
+from fbprophet.plot import add_changepoints_to_plot
 
 from pmdarima.arima import ARIMA
 from pmdarima import auto_arima
@@ -50,14 +50,6 @@ with st.sidebar:
                           default_index=0)
     
     
-
-
-    # # Sidebar setup
-    # st.sidebar.title(':arrow_up: Upload data here:')
-    # uploaded_file = st.sidebar.file_uploader('Upload avocado data', type=['csv'])
-    # if uploaded_file is not None:
-    #     data = pd.read_csv(uploaded_file)
-    #     data.to_csv("avocado_new.csv", index = False)
 
 
 # Information about us
@@ -109,12 +101,14 @@ def load_data(path):
 
 data = load_data('avocado.csv')
 # sort by Date
+
 data=data.sort_values("Date")
 data.drop(['Unnamed: 0'], axis=1, inplace=True)
+
+
 avocado_stats = data.groupby('type')['AveragePrice', 'Total Volume', 'Total Bags'].mean()
 
 
-data['Date']=pd.to_datetime(data['Date'])
 data['week']=data.Date.dt.isocalendar().week # https://github.com/pandas-dev/pandas/issues/39142
 data['month']=pd.DatetimeIndex(data['Date']).month
 
@@ -130,8 +124,13 @@ def convert_month(month):
 
 data['season']=data['month'].apply(lambda x: convert_month(x))
 
-#Regression RandomForest Model
+week_price=data.groupby('week').mean()
+month_price=data.groupby('month').mean()
+season_price=data.groupby('season').mean()
+year_price=data.groupby('year').mean()
 
+
+#Regression RandomForest Model
 from sklearn import preprocessing
 le = preprocessing.LabelEncoder()
 
@@ -287,31 +286,31 @@ elif (selected == 'Data Exploration'):
     Byweekly = st.checkbox('Weekly')
     if Byweekly:
         st.success('🌎 **Seasonality by weekly**')
-        from PIL import Image 
-        img_weekly = Image.open("images/weekly.jpg")
-        st.image(img_weekly,width=700,caption='Streamlit Images')
+        fig_weekly=plt.figure(figsize=(10,6))
+        plt.plot(week_price.index, week_price['AveragePrice'])
+        st.pyplot(fig_weekly)
     Bymonthly = st.checkbox('Monthly')
     if Bymonthly:
         st.success('🌎 **Seasonality by monthly**')
-        from PIL import Image 
-        img_monthly = Image.open("images/monthly.jpg")
-        st.image(img_monthly,width=700,caption='Streamlit Images')
+        fig_monthly=plt.figure(figsize=(10,6))
+        plt.plot(month_price.index, month_price['AveragePrice'])
+        st.pyplot(fig_monthly)
     BySeason = st.checkbox('BySeason')
     if BySeason:
         st.success('🌎 **Seasonality by season**')
-        from PIL import Image 
-        img_seasonly = Image.open("images/seasonly.jpg")
-        st.image(img_seasonly,width=700,caption='Streamlit Images')
+        fig_season=plt.figure(figsize=(10,6))
+        plt.plot(season_price.index, season_price['AveragePrice'])
+        st.pyplot(fig_season)
     Byyearly = st.checkbox('Yearly')
     if Byyearly:
         st.success('🌎 **Seasonality by yearly**')
-        from PIL import Image 
-        img_yearly = Image.open("images/yearly.jpg")
-        st.image(img_yearly,width=700,caption='Streamlit Images')
+        fig_yearly=plt.figure(figsize=(10,6))
+        plt.plot(year_price.index, year_price['AveragePrice'])
+        st.pyplot(fig_yearly)
     
     st.subheader(':chart: Price analysis')
     columns = st.multiselect(label='Please select type of avocado to check the average price change by region', options=data.type.unique())
-    if st.button("Generate Plot"):
+    if st.button("Generate Price Plot"):
 
         if columns==['organic']:
             
@@ -346,7 +345,49 @@ elif (selected == 'Data Exploration'):
             st.pyplot(fig4)
         else:
             st.write('please select again!')
+    st.markdown('''
+        - price change by region
+        - some region has higher price
+        - some region has lower price                   
+        ''')
 
+    st.subheader(':chart: Sale volume analysis')
+    columns_1 = st.multiselect(label='Please select type of avocado to check the sale volume change by region', options=data.type.unique())
+    if st.button("Generate Volume Plot"):
+
+        if columns_1==['organic']:
+            
+            st.write("classify by region, filter type=='organic' ")
+            sns.set(style='whitegrid')
+            fig_1=plt.figure(figsize=(25,5))
+            sns.boxplot(data=data[(data['type']=='organic') & (data['region']!='TotalUS')], x='region', y='Total Volume')
+            plt.xticks(rotation=90)
+            st.pyplot(fig_1)
+
+        elif columns_1==['conventional']:
+
+            st.write("classify by region, filter type=='conventional' ")
+            sns.set(style='whitegrid')
+            fig_2=plt.figure(figsize=(25,5))
+            sns.boxplot(data=data[(data['type']=='conventional') & (data['region']!='TotalUS')], x='region', y='Total Volume')
+            plt.xticks(rotation=90)
+            st.pyplot(fig_2)  
+
+        elif columns_1==['organic', 'conventional']:
+            
+            st.write("classify by region, filter type==['organic'] ")
+            fig_3=plt.figure(figsize=(25,5))
+            sns.boxplot(data=data[(data['type']=='organic') & (data['region']!='TotalUS')], x='region', y='Total Volume')
+            plt.xticks(rotation=90)
+            st.pyplot(fig_3)
+
+            st.write("classify by region, filter type==['conventinal'] ")
+            fig_4=plt.figure(figsize=(25,5))
+            sns.boxplot(data=data[(data['type']=='conventional') & (data['region']!='TotalUS')], x='region', y='Total Volume')
+            plt.xticks(rotation=90)
+            st.pyplot(fig_4)
+        else:
+            st.write('please select again!')
 
     st.markdown('''
         Grouped region from multiple states: show high sale volume
@@ -360,13 +401,11 @@ elif (selected == 'Data Exploration'):
         LosAngles city is belong to California state. California is the Largest avocado Consumer in the US
             
         ''')
-    text=" In this exercise we will focus on **California** region"
+    text=" In this exercise we will focus on **California** region because California has higher price and higher sale volume"
     new_title = ':point_right:' + '<p style="font-family:sans-serif; color:Blue; font-size: 30px;">' + text + '</p>'
     st.markdown(new_title, unsafe_allow_html=True)
 
     
-
-
 
 # https://www.webfx.com/tools/emoji-cheat-sheet/
 
@@ -409,15 +448,7 @@ elif (selected == 'Regression model'):
 
         if uploaded_file is not None:
             df_new = pd.read_csv(uploaded_file)
-            # df_new.to_csv("avocado_new.csv", index = False)   
-
-            # data preprocessing
-            # @st.cache
-            # def load_data(path):
-            #     df_new = pd.read_csv(path)
-            #     return df_new
-
-            # df_new = load_data('data_regression.csv')
+            
             df_new.drop(['Unnamed: 0'], axis=1, inplace=True)
             
             
@@ -444,9 +475,7 @@ elif (selected == 'Regression model'):
             
             ax.scatter(x=y_test, y=y_pred_RF, c='blue', label=['Original test data'])
             ax.scatter(x=y_sample, y=y_sample, s=120, c='red', label=['New prediction data'])
-            # Annotation
-            # ax.annotate(f'new prediction Avocado price at sampled data', (1.5, 2.0), xytext=(1.5, 2),
-            # textcoords='offset points', arrowprops=dict(facecolor='green', shrink=0.5), ha='center')
+
             labels = ["%.2f" % i for i in y_sample]
             for label, x, y in zip(labels, y_sample, y_sample_pred_RF):
                 ax.annotate(
@@ -534,6 +563,7 @@ elif (selected == 'Arima model'):
             if (avocado_type == 'organic'):
                 # Apply model to make predictions
                 prediction = organic_model.predict(n_periods=len(organic_test)+no_months)
+
                 st.success(f'Price prediction for the next {no_months} months is sucessful')
                 st.dataframe(prediction)
                 last_date=prediction.last_valid_index()
@@ -545,6 +575,7 @@ elif (selected == 'Arima model'):
                 # fig = plt.figure()
                 fig6=plt.figure(figsize=(15, 6))
                 ax = fig6.add_subplot(1, 1, 1)
+                ax.plot(organic_test, label='test_data')
                 ax.plot(prediction, label='Prediction price')
                 ax.plot(last_prediction, 'ro')
 
@@ -567,6 +598,7 @@ elif (selected == 'Arima model'):
                 # fig = plt.figure()
                 fig7=plt.figure(figsize=(15, 6))
                 ax = fig7.add_subplot(1, 1, 1)
+                ax.plot(conventional_test, label='test_data')
                 ax.plot(prediction, label='Prediction price')
                 ax.plot(last_prediction, 'ro')
                 
@@ -578,8 +610,6 @@ elif (selected == 'Arima model'):
         else:
             st.error('Please click "Run" to predict the future price!')
     run()
-
-
 
 
 
@@ -636,8 +666,8 @@ elif (selected == 'Prophet model'):
     import datetime 
     import dateutil.relativedelta
     from datetime import date
-    lastmonth=datetime.date(2018, 3, 1)
-    nextmonth=lastmonth + dateutil.relativedelta.relativedelta(months=+no_months_2)
+    lastmonth=datetime.date(2017, 7, 1)
+    nextmonth=lastmonth + dateutil.relativedelta.relativedelta(months=9+no_months_2)
 
     new_months = pd.date_range(lastmonth,nextmonth, 
                 freq='M').strftime("%Y-%m-%d").tolist()    
@@ -650,9 +680,7 @@ elif (selected == 'Prophet model'):
 
     def run():
 
-        # number of month to predict
-        #no_months = st.sidebar.slider('Number of months to predict', 1, 48, 12)
-
+        
         if st.button('Run'):
             if (avocado_type == 'organic'):
                 # Apply model to make predictions
@@ -676,6 +704,7 @@ elif (selected == 'Prophet model'):
                 prophet_fig5=plt.figure(figsize=(15, 6))
                 ax = prophet_fig5.add_subplot(1, 1, 1)
                 ax.plot(future_forecast_organic_dt.yhat, label='Prediction price')
+                ax.plot(organic_test, label='test_data')
                 ax.plot(last_prediction, 'ro')
                 # Annotation
                 ax.annotate(f'Organic Avocado price at {last_date} is {last_price:.2f} USD', (last_date, last_price), xytext=(0.8, 1.9),
@@ -702,6 +731,7 @@ elif (selected == 'Prophet model'):
                 prophet_fig6=plt.figure(figsize=(15, 6))
                 ax = prophet_fig6.add_subplot(1, 1, 1)
                 ax.plot(future_forecast_conventional_dt.yhat, label='Prediction price')
+                ax.plot(conventional_test, label='test_data')
                 ax.plot(last_prediction, 'ro')
                 # Annotation
                 ax.annotate(f'Organic Avocado price at {last_date} is {last_price:.2f} USD', (last_date, last_price), xytext=(0.8, 1.9),
@@ -788,23 +818,30 @@ elif (selected == 'Model Results'):
     # Using Style for the Dataframe
     st.dataframe(timeseries_table.style.applymap(color_df, subset=[ 'Mean absolute error', 'mean_absolute_percentage_error', 'mean_squared_error']))
 
-    st.subheader(':memo: ARIMA model works best with time series that have strong seasonal effects and several seasons of historical data')  
+    st.success('🌎 PROPHET price prediction tend to growth Year-over-year (YOY)')
+    from PIL import Image 
+    prophet_img2 = Image.open("images/prophet_prediction_organic.jpg")
+    st.image(prophet_img2,width=700,caption='Streamlit Images')
+
+    st.success('🌎 ARIMA price prediction tend to growth Year-over-year (YOY)')
+    from PIL import Image 
+    prophet_img2 = Image.open("images/arima_prediction_organic_5years.jpg")
+    st.image(prophet_img2,width=700,caption='Streamlit Images')
+
+
+    st.subheader(":memo: ARIMA model works best with time series that have strong seasonal effects and several seasons of historical data.")
+
+    conclusion_title = '<p style="font-family:sans-serif; color:Blue; font-size: 25px;">Price forecasting tend to growth Year-over-year which support for company can expand avocado production in the future </p>'
+    st.markdown(conclusion_title, unsafe_allow_html=True)
     
-
-
-      
-
-  
-
-
-
+    
 
 
 #=====================================================================================================================================================    
 
 elif (selected == 'Thank You'): 
     st.balloons()
-    st.header('THANK YOU FOR VISITING OUR APP') 
+    st.header('THANK YOU FOR YOUR LISTENING') 
 
 
     # def load_lottiefile(filepath: str):
