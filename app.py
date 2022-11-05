@@ -449,7 +449,7 @@ elif (selected == 'Regression model'):
         if uploaded_file is not None:
             df_new = pd.read_csv(uploaded_file)
             
-            df_new.drop(['Unnamed: 0'], axis=1, inplace=True)
+            # df_new.drop(['Unnamed: 0'], axis=1, inplace=True)
             
             
             X1=df_new.drop(['AveragePrice'], axis=1)
