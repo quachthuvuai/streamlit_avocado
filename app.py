@@ -10,8 +10,8 @@ from sklearn.metrics import r2_score
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 from math import sqrt
 
-from prophet import Prophet 
-from prophet.plot import add_changepoints_to_plot
+from fbprophet import Prophet 
+from fbprophet.plot import add_changepoints_to_plot
 
 from pmdarima.arima import ARIMA
 from pmdarima import auto_arima
@@ -459,6 +459,8 @@ elif (selected == 'Regression model'):
             X_sample = X1.sample(int_num)
             y_sample = y1[X_sample.index]
 
+            
+
 
             pipe_RF_sample=Pipeline([('scaler', StandardScaler()), 
                             ('rf', RandomForestRegressor())])
@@ -466,6 +468,22 @@ elif (selected == 'Regression model'):
             pipe_RF_sample.fit(X_sample, y_sample)
 
             y_sample_pred_RF=pipe_RF_sample.predict(X_sample)
+
+            st.write('Dataframe of prediction vs Actual')
+            df_reg = pd.DataFrame(data=np.column_stack((y_sample,y_sample_pred_RF)),columns=['Actual','Predict'])
+
+            st.dataframe(df_reg)
+            @st.cache
+            def convert_df_to_csv(df):
+                # IMPORTANT: Cache the conversion to prevent computation on every rerun
+                return df.to_csv().encode('utf-8')
+
+            st.download_button(
+                label="Download data as CSV",
+                data=convert_df_to_csv(df_reg),
+                file_name='Regression_prediction_data.csv',
+                mime='text/csv',
+                )
 
 
 
@@ -584,6 +602,18 @@ elif (selected == 'Arima model'):
                 textcoords='offset points', arrowprops=dict(facecolor='green', shrink=0.5), ha='center')
                 ax.legend()
                 st.pyplot(fig6)
+
+                @st.cache
+                def convert_df_to_csv(df):
+                    # IMPORTANT: Cache the conversion to prevent computation on every rerun
+                    return df.to_csv().encode('utf-8')
+
+                st.download_button(
+                    label="Download data as CSV",
+                    data=convert_df_to_csv(prediction.tail(no_months)),
+                    file_name='future_forecast_organic.csv',
+                    mime='text/csv',
+                )
             else:
                 # Apply model to make predictions
                 prediction = conventional_model.predict(n_periods=len(conventional_test)+no_months)
@@ -603,10 +633,22 @@ elif (selected == 'Arima model'):
                 ax.plot(last_prediction, 'ro')
                 
                 # Annotation
-                ax.annotate(f'Organic Avocado price at {last_date} is {last_price:.2f} USD', (last_date, last_price), xytext=(0.8, 1.9),
+                ax.annotate(f'Conventional Avocado price at {last_date} is {last_price:.2f} USD', (last_date, last_price), xytext=(0.8, 1.9),
                 textcoords='offset points', arrowprops=dict(facecolor='green', shrink=0.5), ha='center')
                 ax.legend()
                 st.pyplot(fig7)
+
+                @st.cache
+                def convert_df_to_csv(df):
+                    # IMPORTANT: Cache the conversion to prevent computation on every rerun
+                    return df.to_csv().encode('utf-8')
+
+                st.download_button(
+                    label="Download data as CSV",
+                    data=convert_df_to_csv(prediction.tail(no_months)),
+                    file_name='future_forecast_conventional.csv',
+                    mime='text/csv',
+                )
         else:
             st.error('Please click "Run" to predict the future price!')
     run()
@@ -711,6 +753,18 @@ elif (selected == 'Prophet model'):
                 textcoords='offset points', arrowprops=dict(facecolor='green', shrink=0.5), ha='center')
                 ax.legend()
                 st.pyplot(prophet_fig5)
+
+                @st.cache
+                def convert_df_to_csv(df):
+                    # IMPORTANT: Cache the conversion to prevent computation on every rerun
+                    return df.to_csv().encode('utf-8')
+
+                st.download_button(
+                    label="Download data as CSV",
+                    data=convert_df_to_csv(future_forecast_organic.tail(no_months_2)),
+                    file_name='future_forecast_organic.csv',
+                    mime='text/csv',
+                )
             else:
                 # Apply model to make predictions
                 future_forecast_conventional = pf_model_conventional.predict(forecast)
@@ -738,10 +792,23 @@ elif (selected == 'Prophet model'):
                 textcoords='offset points', arrowprops=dict(facecolor='green', shrink=0.5), ha='center')
                 ax.legend()
                 st.pyplot(prophet_fig6)
+
+                @st.cache
+                def convert_df_to_csv(df):
+                    # IMPORTANT: Cache the conversion to prevent computation on every rerun
+                    return df.to_csv().encode('utf-8')
+
+                st.download_button(
+                    label="Download data as CSV",
+                    data=convert_df_to_csv(future_forecast_conventional.tail(no_months_2)),
+                    file_name='future_forecast_conventional.csv',
+                    mime='text/csv',
+                )
         else:
             st.error('Please click "Run" to predict the future price!')
     run()
     
+
 #=====================================================================================================================================================    
 
 elif (selected == 'Model Results'): 
